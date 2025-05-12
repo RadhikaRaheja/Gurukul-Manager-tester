@@ -1,238 +1,326 @@
-const backendURL = 'https://script.google.com/macros/s/AKfycbw7NUg_5Av_re7t_ois3N27hKdeuIyoZxivmEIV-lWV09JzHPzmdBftjRa3RAFVXURLhw/exec';
-
-let allTransactions = [];
-let balanceMap = new Map();
-let studentMap = new Map(); // studentId -> {name, class}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  const students = await fetchStudents();
-  students.forEach(s => studentMap.set(s.id, { name: s.name, class: s.class }));
-  await fetchAllTransactions();
-  buildBalanceMap();
-  renderEntryRows(students);
-  populateDropdowns(students);
-  document.getElementById('saveAllButton').addEventListener('click', saveAllEntries);
-  document.getElementById('modeSwitch').addEventListener('change', toggleMode);
-  applySavedMode();
-});
-
-function applySavedMode() {
-  const isLight = localStorage.getItem('mode') === 'light';
-  document.body.classList.toggle('light-mode', isLight);
-  document.body.classList.toggle('dark-mode', !isLight);
-  document.getElementById('modeSwitch').checked = isLight;
+/* ============ RESET & BASE ============ */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.3s, color 0.3s;
+  overflow-x: auto;
 }
 
-function toggleMode() {
-  const isLight = document.getElementById('modeSwitch').checked;
-  document.body.classList.toggle('light-mode', isLight);
-  document.body.classList.toggle('dark-mode', !isLight);
-  localStorage.setItem('mode', isLight ? 'light' : 'dark');
+.dark-mode {
+  background-color: #0e3378;
+  color: #f1f5f9;
+}
+.light-mode {
+  background-color: #f0f8ff;
+  color: #00264d;
 }
 
-function switchTab(tabId) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId + 'Tab').classList.add('active');
+/* ============ HEADER ============ */
+#main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background-color: #66967e;
+  z-index: 1000;
+}
+#main-header h2 {
+  font-size: 1.5rem;
+  margin: 0;
+  white-space: nowrap;
+  color: white; /* ✅ White in both modes */
 }
 
-async function fetchStudents() {
-  const res = await fetch(`${backendURL}?action=getStudents`);
-  return await res.json(); // each student: {id, name, class}
+/* ============ TABS ============ */
+.nav-tabs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tab-button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+.tab-button.active {
+  background-color: #004099;
+}
+.tab-button:hover {
+  background-color: #005bb5;
 }
 
-async function fetchAllTransactions() {
-  const res = await fetch(`${backendURL}?action=getTransactions`);
-  allTransactions = await res.json();
+/* ============ MODE TOGGLE ============ */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 42px;
+  height: 22px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 20px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: #007bff;
+}
+input:checked + .slider:before {
+  transform: translateX(18px);
 }
 
-function buildBalanceMap() {
-  balanceMap.clear();
-  allTransactions.forEach(tx => {
-    const id = tx.studentId;
-    const prev = balanceMap.get(id) || 0;
-    balanceMap.set(id, prev + (tx.credit - tx.debit));
-  });
+/* ============ MAIN CONTENT ============ */
+.main-content {
+  max-width: 1000px;
+  margin: auto;
+  padding: 130px 20px 60px 20px;
+}
+.tab {
+  display: none;
+}
+.tab.active {
+  display: block;
 }
 
-function calculateBalance(studentId) {
-  return balanceMap.get(studentId) || 0;
+/* ============ FILTERS ============ */
+.date-container,
+.filter-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+input[type="date"],
+select {
+  padding: 6px 10px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+.dark-mode input,
+.dark-mode select {
+  background-color: #1e293b;
+  color: white;
+  border: 1px solid #334155;
 }
 
-function renderEntryRows(students) {
-  const container = document.getElementById('entryList');
-  container.innerHTML = '';
-  let grandTotal = 0;
-
-  students.sort((a, b) => a.name.localeCompare(b.name));
-
-  students.forEach(s => {
-    const balance = calculateBalance(s.id);
-    grandTotal += balance;
-
-    const row = document.createElement('div');
-    row.className = 'entry-row';
-    row.innerHTML = `
-      <span>${s.name} (${s.class})</span>
-      <input type="number" placeholder="Debit" class="debit" />
-      <input type="number" placeholder="Credit" class="credit" />
-      <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">Rs. ${balance}</span>
-    `;
-    row.dataset.studentId = s.id;
-    container.appendChild(row);
-  });
-
-  document.getElementById('entryTotal').textContent = `Grand Total = Rs. ${grandTotal}`;
+/* ============ ENTRY SECTION ============ */
+.entry-header-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  background-color: #60d660;
+  color: white;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+}
+.entry-header-row > div {
+  flex: 1 1 25%;
+  text-align: center;
+}
+#entryList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.entry-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #1e293b;
+  padding: 10px;
+  border-radius: 8px;
+  gap: 10px;
+  text-align: center;
+}
+.entry-row span,
+.entry-row input {
+  text-align: center;
+  font-weight: bold;
+}
+.entry-row span {
+  flex: 1 1 25%;
+}
+.entry-row input {
+  flex: 1 1 25%;
+}
+.entry-row input.debit {
+  color: #e53935;
+}
+.entry-row input.credit {
+  color: #10b981;
 }
 
-function populateDropdowns(students) {
-  const dashboardSel = document.getElementById('dashboardStudent');
-  dashboardSel.innerHTML = '';
-  students.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = `${s.name} (${s.class})`;
-    dashboardSel.appendChild(opt);
-  });
+/* ============ BUTTONS ============ */
+.button-primary,
+.export-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+.button-primary:hover,
+.export-btn:hover {
+  background-color: #005bb5;
+}
+#saveAllButton {
+  width: 100%;
+  margin-top: 15px;
+}
+#saveAllButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
 }
 
-async function saveAllEntries() {
-  const date = document.getElementById('entryDate').value;
-  if (!date) return alert('Please select a date.');
-
-  const rows = document.querySelectorAll('.entry-row');
-  const entries = [];
-
-  rows.forEach(row => {
-    const studentId = row.dataset.studentId;
-    const student = studentMap.get(studentId);
-    const debit = parseFloat(row.querySelector('.debit').value) || 0;
-    const credit = parseFloat(row.querySelector('.credit').value) || 0;
-    if (debit || credit) {
-      entries.push({ date, studentId, name: student.name, class: student.class, debit, credit });
-    }
-  });
-
-  if (entries.length === 0) return alert('No entries to save.');
-
-  const btn = document.getElementById('saveAllButton');
-  btn.disabled = true;
-  btn.textContent = 'Saving...';
-
-  const savePromises = entries.map(entry =>
-    fetch(backendURL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'saveTransaction', payload: entry })
-    })
-  );
-
-  await Promise.all(savePromises);
-  document.getElementById('entryStatus').textContent = '✅ Entries saved!';
-
-  rows.forEach(r => {
-    r.querySelector('.debit').value = '';
-    r.querySelector('.credit').value = '';
-  });
-
-  await fetchAllTransactions();
-  buildBalanceMap();
-  const students = await fetchStudents();
-  renderEntryRows(students);
-
-  setTimeout(() => {
-    btn.disabled = false;
-    btn.textContent = '💾 Save All Entries';
-    document.getElementById('entryStatus').textContent = '';
-  }, 2000);
+/* ============ MESSAGES & TOTALS ============ */
+.status-message,
+.entry-footer-summary,
+.summary-box {
+  margin-top: 12px;
+  font-weight: bold;
+  background-color: #1e293b;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
 }
 
-function formatDateDMY(dateStr) {
-  const [y, m, d] = dateStr.split('-');
-  return `${d}-${m}-${y}`;
+/* ============ TABLES ============ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+th,
+td {
+  padding: 10px;
+  text-align: center;
+  font-weight: bold; /* ✅ Bolder text */
+}
+thead th {
+  background-color: #60d660;
+  color: white;
+}
+tbody tr:nth-child(odd) {
+  background-color: #1e293b;
+}
+tbody tr:nth-child(even) {
+  background-color: #0f172a;
+}
+.light-mode tbody tr:nth-child(odd) {
+  background-color: #e0f7e9;
+}
+.light-mode tbody tr:nth-child(even) {
+  background-color: #f5fff7;
+}
+/* Light mode for entry tab rows */
+.light-mode .entry-row {
+  background-color: #f5fff7;
+  border: 1px solid #bdeac9;
 }
 
-async function loadDashboard() {
-  const value = document.getElementById('dashboardStudent').value;
-  if (!value) return;
-  const [name, cls] = value.split('|||');
-  const from = document.getElementById('fromDate').value;
-  const to = document.getElementById('toDate').value;
-
-  const filtered = allTransactions
-    .filter(tx => tx.name === name && tx.class === cls)
-    .filter(tx => (!from || tx.date >= from) && (!to || tx.date <= to))
-    .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  const tbody = document.querySelector('#transactionTable tbody');
-  tbody.innerHTML = '';
-  let rangeTotal = 0;
-  filtered.forEach(tx => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${formatDateDMY(tx.date)}</td>
-      <td style="color:#e53935;">Rs. ${tx.debit}</td>
-      <td style="color:#10b981;">Rs. ${tx.credit}</td>
-    `;
-    tbody.appendChild(tr);
-    rangeTotal += tx.credit - tx.debit;
-  });
-
-  const totalTxs = allTransactions.filter(t => t.name === name && t.class === cls);
-  const totalBalance = totalTxs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
-
-  document.getElementById('tableBalanceTotal').innerHTML = `
-    💡 Balance for selected range: Rs. ${rangeTotal}<br>
-    📊 Total balance: Rs. ${totalBalance}
-    <br><br>
-    <button class="export-btn" onclick="exportDashboardPDF('${name}')">📤 Share as PDF</button>
-  `;
+/* Light mode for summary/info boxes */
+.light-mode .summary-box,
+.light-mode .entry-footer-summary,
+.light-mode .status-message {
+  background-color: #f0fff4;
+  color: #003d1f;
+  border: 1px solid #a8e2bd;
 }
 
-async function exportDashboardPDF(name) {
-  const doc = new jspdf.jsPDF();
-  doc.text(`Transaction Report - ${name} (in Rs.)`, 14, 16);
-  doc.autoTable({ html: '#transactionTable', startY: 24 });
+.light-mode td {
+  color: #00264d;
+}
 
-  const blob = doc.output('blob');
-  const file = new File([blob], `${name}_transactions.pdf`, { type: 'application/pdf' });
+/* ============ FOOTER ============ */
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #66967e;
+  color: white;
+  text-align: center;
+  font-size: 1rem;
+  padding: 4px 12px;
+  height: 28px;
+  line-height: 24px;
+  z-index: 100;
+}
 
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    await navigator.share({ files: [file], title: `${name} Transactions` });
-  } else {
-    alert("Sharing not supported on this device.");
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+  #main-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .tab-button {
+    width: 100%;
+  }
+  .entry-header-row,
+  .entry-row {
+    flex-direction: column;
+    align-items: center;
+  }
+  .entry-row span,
+  .entry-row input {
+    width: 100%;
+  }
+  .filter-box {
+    flex-direction: column;
+  }
+  input,
+  select,
+  button {
+    width: 100%;
+  }
+  h2 {
+    font-size: 1.3rem;
   }
 }
-
-async function loadSnapshot() {
-  const from = document.getElementById('snapFrom').value;
-  const to = document.getElementById('snapTo').value || from;
-  const balanceFilter = document.getElementById('balanceFilter').value;
-
-  if (!from) return alert('Please select a date');
-
-  const res = await fetch(`${backendURL}?action=getSnapshot&from=${from}&to=${to}`);
-  const data = await res.json();
-
-  const filtered = data.filter(row => {
-    const net = row.credit - row.debit;
-    if (balanceFilter === 'credit') return net > 0;
-    if (balanceFilter === 'debit') return net < 0;
-    return true;
-  });
-
-  const tbody = document.querySelector('#snapshotTable tbody');
-  tbody.innerHTML = '';
-  filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
-  filtered.forEach(row => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${formatDateDMY(row.date)}</td>
-      <td>${row.name}</td>
-      <td>${row.class}</td>
-      <td style="color:#e53935;">Rs. ${row.debit}</td>
-      <td style="color:#10b981;">Rs. ${row.credit}</td>
-    `;
-    tbody.appendChild(tr);
-  });
+@media (max-width: 480px) {
+  h2 {
+    font-size: 1.1rem;
+  }
+  th,
+  td {
+    font-size: 0.9rem;
+  }
 }
