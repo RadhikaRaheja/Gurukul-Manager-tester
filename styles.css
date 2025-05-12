@@ -1,28 +1,29 @@
-/* ============ GLOBAL STYLES ============ */
+/* ============ RESET ============ */
+* {
+  box-sizing: border-box;
+}
 body {
   margin: 0;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  font-family: 'Segoe UI', Roboto, sans-serif;
   transition: background 0.3s, color 0.3s;
-  padding-top: 130px;
-  padding-bottom: 50px;
+  overflow-x: auto;
 }
-
 .dark-mode {
   background-color: #0e3378;
   color: #f1f5f9;
 }
-
 .light-mode {
   background-color: #f0f8ff;
   color: #00264d;
 }
 
-button {
-  cursor: pointer;
-}
-
 /* ============ HEADER ============ */
 #main-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -30,24 +31,20 @@ button {
   gap: 12px;
   padding: 10px 20px;
   background-color: #66967e;
-  position: sticky;
-  top: 0;
   z-index: 1000;
 }
-
 #main-header h2 {
   font-size: 1.5rem;
   margin: 0;
   white-space: nowrap;
 }
 
-/* ============ NAV TABS ============ */
+/* ============ NAVIGATION TABS ============ */
 .nav-tabs {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
 }
-
 .tab-button {
   padding: 8px 16px;
   font-size: 14px;
@@ -57,13 +54,11 @@ button {
   border: none;
   transition: background-color 0.3s ease;
 }
-
-.tab-button:hover {
-  background-color: #005bb5;
-}
-
 .tab-button.active {
   background-color: #004099;
+}
+.tab-button:hover {
+  background-color: #005bb5;
 }
 
 /* ============ MODE TOGGLE ============ */
@@ -73,13 +68,11 @@ button {
   width: 42px;
   height: 22px;
 }
-
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
-
 .slider {
   position: absolute;
   cursor: pointer;
@@ -91,7 +84,6 @@ button {
   right: 0;
   bottom: 0;
 }
-
 .slider:before {
   position: absolute;
   content: "";
@@ -103,22 +95,19 @@ button {
   transition: 0.4s;
   border-radius: 50%;
 }
-
 input:checked + .slider {
   background-color: #007bff;
 }
-
 input:checked + .slider:before {
   transform: translateX(18px);
 }
 
-/* ============ MAIN LAYOUT ============ */
+/* ============ MAIN CONTENT ============ */
 .main-content {
   max-width: 1000px;
   margin: auto;
-  padding: 20px;
+  padding: 130px 20px 60px 20px;
 }
-
 .tab {
   display: none;
 }
@@ -129,23 +118,18 @@ input:checked + .slider:before {
 /* ============ DATE & FILTERS ============ */
 .date-container,
 .filter-box {
-  margin-bottom: 15px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  align-items: center;
+  margin-bottom: 20px;
 }
-
 input[type="date"],
 select {
   padding: 6px 10px;
   font-size: 1rem;
   border-radius: 6px;
   border: 1px solid #ccc;
-  background-color: white;
-  color: #00264d;
 }
-
 .dark-mode input,
 .dark-mode select {
   background-color: #1e293b;
@@ -162,18 +146,12 @@ select {
   color: white;
   padding: 10px;
   border-radius: 6px;
-  position: sticky;
-  top: 85px;
-  z-index: 99;
 }
-
 #entryList {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 10px;
 }
-
 .entry-row {
   display: flex;
   align-items: center;
@@ -183,42 +161,42 @@ select {
   border-radius: 8px;
   gap: 10px;
 }
-
 .entry-row span {
   flex: 1 1 150px;
 }
-
 .entry-row input {
   flex: 0 0 100px;
 }
-
 .entry-row input.debit {
   color: #e53935;
 }
-
 .entry-row input.credit {
   color: #10b981;
 }
 
 /* ============ BUTTONS & STATUS ============ */
-#saveAllButton {
-  margin-top: 15px;
+.button-primary,
+.export-btn {
   background-color: #007bff;
   color: white;
-  font-weight: bold;
-  padding: 10px 18px;
   border: none;
+  padding: 8px 14px;
   border-radius: 6px;
-  cursor: pointer;
-  transition: 0.3s;
-  width: 100%;
+  font-weight: bold;
+  transition: 0.3s ease;
 }
-
+.button-primary:hover,
+.export-btn:hover {
+  background-color: #005bb5;
+}
+#saveAllButton {
+  width: 100%;
+  margin-top: 15px;
+}
 #saveAllButton:disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
 }
-
 .status-message,
 .entry-footer-summary,
 .summary-box {
@@ -235,28 +213,30 @@ table {
   border-collapse: collapse;
   margin-top: 10px;
 }
-
-th, td {
+th,
+td {
   padding: 10px;
   text-align: center;
 }
-
-thead {
-  background-color: #334155;
-  color: white;
+thead th {
+  background-color: #60d660 !important;
+  color: white !important;
+  font-weight: bold;
 }
-
 tbody tr:nth-child(odd) {
   background-color: #1e293b;
 }
 tbody tr:nth-child(even) {
   background-color: #0f172a;
 }
-
-th {
-  position: sticky;
-  top: 130px;
-  z-index: 98;
+.light-mode tbody tr:nth-child(odd) {
+  background-color: #e0f7e9;
+}
+.light-mode tbody tr:nth-child(even) {
+  background-color: #f5fff7;
+}
+.light-mode td {
+  color: #00264d;
 }
 
 /* ============ FOOTER ============ */
@@ -267,9 +247,9 @@ footer {
   background-color: #66967e;
   color: white;
   text-align: center;
-  font-size: 0.85rem;
-  padding: 8px;
-  height: 36px;
+  font-size: 0.95rem;
+  padding: 4px 12px;
+  height: 28px;
   z-index: 100;
 }
 
@@ -279,29 +259,32 @@ footer {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .tab-button {
     width: 100%;
-    text-align: center;
   }
-
   .entry-header-row,
   .entry-row {
     flex-direction: column;
     align-items: flex-start;
   }
-
   .filter-box {
     flex-direction: column;
   }
-
   input,
   select,
   button {
     width: 100%;
   }
-
-  .nav-tabs {
-    flex-direction: column;
+  h2 {
+    font-size: 1.3rem;
+  }
+}
+@media (max-width: 480px) {
+  h2 {
+    font-size: 1.1rem;
+  }
+  th,
+  td {
+    font-size: 0.9rem;
   }
 }
