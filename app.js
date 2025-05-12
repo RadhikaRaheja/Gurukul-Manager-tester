@@ -153,28 +153,25 @@ async function loadDashboard() {
   const tbody = document.querySelector('#transactionTable tbody');
   tbody.innerHTML = '';
 
-  let total = 0;
-  filtered.forEach(tx => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${formatDateDMY(tx.date)}</td>
-      <td style="color:#e53935;">₹${tx.debit}</td>
-      <td style="color:#10b981;">₹${tx.credit}</td>
-    `;
-    tbody.appendChild(tr);
-    total += tx.credit - tx.debit;
-  });
+  let rangeTotal = 0;
+filtered.forEach(tx => {
+  ...
+  rangeTotal += tx.credit - tx.debit;
+});
+const totalTxs = allTransactions.filter(t => t.name === name && t.class === cls);
+const totalBalance = totalTxs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
 
-  document.getElementById('tableBalanceTotal').innerHTML = `
-    🧾 Total Balance for ${name}: ₹${total}
-    <br /><br />
-    <button onclick="exportDashboardPDF('${name}')">📤 Share as PDF</button>
-  `;
+document.getElementById('tableBalanceTotal').innerHTML = `
+  💡 Balance for selected range: Rs. ${rangeTotal}<br>
+  📊 Total balance: Rs. ${totalBalance}
+  <br><br>
+  <button class="export-btn" onclick="exportDashboardPDF('${name}')">📤 Share as PDF</button>
+`;
 }
 
 async function exportDashboardPDF(name) {
   const doc = new jspdf.jsPDF();
-  doc.text(`Transaction Report - ${name}`, 14, 16);
+  doc.text(`Transaction Report - ${name} (in Rs.)`, 14, 16);
   doc.autoTable({ html: '#transactionTable', startY: 24 });
 
   const blob = doc.output('blob');
