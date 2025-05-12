@@ -1,4 +1,4 @@
-/* ============ RESET ============ */
+/* ============ RESET & BASE ============ */
 * {
   box-sizing: border-box;
 }
@@ -8,10 +8,12 @@ body {
   transition: background 0.3s, color 0.3s;
   overflow-x: auto;
 }
+
 .dark-mode {
   background-color: #0e3378;
   color: #f1f5f9;
 }
+
 .light-mode {
   background-color: #f0f8ff;
   color: #00264d;
@@ -39,7 +41,7 @@ body {
   white-space: nowrap;
 }
 
-/* ============ NAVIGATION TABS ============ */
+/* ============ TABS ============ */
 .nav-tabs {
   display: flex;
   gap: 10px;
@@ -115,7 +117,7 @@ input:checked + .slider:before {
   display: block;
 }
 
-/* ============ DATE & FILTERS ============ */
+/* ============ FORM + FILTERS ============ */
 .date-container,
 .filter-box {
   display: flex;
@@ -137,7 +139,7 @@ select {
   border: 1px solid #334155;
 }
 
-/* ============ ENTRY ROWS ============ */
+/* ============ ENTRY STYLING ============ */
 .entry-header-row {
   display: flex;
   justify-content: space-between;
@@ -183,7 +185,7 @@ select {
   padding: 8px 14px;
   border-radius: 6px;
   font-weight: bold;
-  transition: 0.3s ease;
+  transition: background-color 0.3s ease;
 }
 .button-primary:hover,
 .export-btn:hover {
@@ -247,9 +249,10 @@ footer {
   background-color: #66967e;
   color: white;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 1rem;
   padding: 4px 12px;
   height: 28px;
+  line-height: 20px;
   z-index: 100;
 }
 
