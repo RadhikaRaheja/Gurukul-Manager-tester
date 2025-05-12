@@ -1,17 +1,14 @@
 const backendURL = 'https://script.google.com/macros/s/AKfycbw7NUg_5Av_re7t_ois3N27hKdeuIyoZxivmEIV-lWV09JzHPzmdBftjRa3RAFVXURLhw/exec';
 
 let allTransactions = [];
-
-function switchTab(tabId) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId + 'Tab').classList.add('active');
-}
+let balanceMap = new Map();
+let studentMap = new Map();
 
 document.addEventListener('DOMContentLoaded', async () => {
   const students = await fetchStudents();
+  students.forEach(s => studentMap.set(s.id, s));
   await fetchAllTransactions();
+  buildBalanceMap();
   renderEntryRows(students);
   populateDropdowns(students);
   document.getElementById('saveAllButton').addEventListener('click', saveAllEntries);
@@ -25,6 +22,7 @@ function applySavedMode() {
   document.body.classList.toggle('dark-mode', !isLight);
   document.getElementById('modeSwitch').checked = isLight;
 }
+
 function toggleMode() {
   const isLight = document.getElementById('modeSwitch').checked;
   document.body.classList.toggle('light-mode', isLight);
@@ -32,13 +30,34 @@ function toggleMode() {
   localStorage.setItem('mode', isLight ? 'light' : 'dark');
 }
 
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId + 'Tab').classList.add('active');
+}
+
 async function fetchStudents() {
   const res = await fetch(`${backendURL}?action=getStudents`);
   return await res.json();
 }
+
 async function fetchAllTransactions() {
   const res = await fetch(`${backendURL}?action=getTransactions`);
   allTransactions = await res.json();
+}
+
+function buildBalanceMap() {
+  balanceMap.clear();
+  allTransactions.forEach(tx => {
+    const key = tx.studentId;
+    const prev = balanceMap.get(key) || 0;
+    balanceMap.set(key, prev + (tx.credit - tx.debit));
+  });
+}
+
+function calculateBalance(studentId) {
+  return balanceMap.get(studentId) || 0;
 }
 
 function populateDropdowns(students) {
@@ -46,7 +65,7 @@ function populateDropdowns(students) {
   dashboardSel.innerHTML = '';
   students.forEach(s => {
     const opt = document.createElement('option');
-    opt.value = `${s.name}|||${s.class}`;
+    opt.value = s.id;
     opt.textContent = `${s.name} (${s.class})`;
     dashboardSel.appendChild(opt);
   });
@@ -57,8 +76,10 @@ function renderEntryRows(students) {
   container.innerHTML = '';
   let grandTotal = 0;
 
+  students.sort((a, b) => a.name.localeCompare(b.name));
+
   students.forEach(s => {
-    const balance = calculateBalance(s.name, s.class);
+    const balance = calculateBalance(s.id);
     grandTotal += balance;
 
     const row = document.createElement('div');
@@ -69,17 +90,11 @@ function renderEntryRows(students) {
       <input type="number" placeholder="Credit" class="credit" />
       <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">Rs. ${balance}</span>
     `;
-    row.dataset.name = s.name;
-    row.dataset.class = s.class;
+    row.dataset.id = s.id;
     container.appendChild(row);
   });
 
   document.getElementById('entryTotal').textContent = `Grand Total = Rs. ${grandTotal}`;
-}
-
-function calculateBalance(name, cls) {
-  const txs = allTransactions.filter(t => t.name === name && t.class === cls);
-  return txs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
 }
 
 async function saveAllEntries() {
@@ -90,12 +105,12 @@ async function saveAllEntries() {
   const entries = [];
 
   rows.forEach(row => {
-    const name = row.dataset.name;
-    const cls = row.dataset.class;
+    const studentId = row.dataset.id;
+    const s = studentMap.get(studentId);
     const debit = parseFloat(row.querySelector('.debit').value) || 0;
     const credit = parseFloat(row.querySelector('.credit').value) || 0;
     if (debit || credit) {
-      entries.push({ date, name, class: cls, debit, credit });
+      entries.push({ date, studentId, name: s.name, class: s.class, debit, credit });
     }
   });
 
@@ -121,6 +136,7 @@ async function saveAllEntries() {
   });
 
   await fetchAllTransactions();
+  buildBalanceMap();
   const students = await fetchStudents();
   renderEntryRows(students);
 
