@@ -12,12 +12,12 @@
 <body class="dark-mode">
 
   <!-- 🔝 Fixed Header -->
-  <header class="fixed-header">
-    <h1>Gurukul Manager</h1>
+  <header id="main-header">
+    <h2>Gurukul Manager</h2>
     <nav class="nav-tabs">
-      <button onclick="switchTab('entry')" id="entryTab" class="active">➕ Entry</button>
-      <button onclick="switchTab('dashboard')" id="dashboardTab">📊 Dashboard</button>
-      <button onclick="switchTab('snapshot')" id="snapshotTab">📅 Snapshot</button>
+      <button class="tab-button active" onclick="switchTab('entry')" id="entryTab">➕ Entry</button>
+      <button class="tab-button" onclick="switchTab('dashboard')" id="dashboardTab">📊 Dashboard</button>
+      <button class="tab-button" onclick="switchTab('snapshot')" id="snapshotTab">📆 Snapshot</button>
     </nav>
     <div class="mode-toggle">
       <label class="switch">
@@ -27,8 +27,8 @@
     </div>
   </header>
 
-  <!-- 🧾 Main -->
-  <main>
+  <!-- 📥 Main -->
+  <main class="main-content">
 
     <!-- 📥 Entry Section -->
     <section id="entry" class="tab active">
@@ -37,15 +37,12 @@
         <label for="entryDate">Date:</label>
         <input type="date" id="entryDate" />
       </div>
-
-      <!-- 🧾 Entry Table Headers -->
       <div class="entry-header-row">
         <div>Student</div>
         <div>Debit (₹)</div>
         <div>Credit (₹)</div>
         <div>Balance</div>
       </div>
-
       <div id="entryList"></div>
       <div id="entryStatus" class="status-message"></div>
       <button id="saveAllButton">💾 Save All Entries</button>
@@ -58,9 +55,9 @@
       <div class="filter-box">
         <label for="dashboardStudent">Student:</label>
         <select id="dashboardStudent"></select>
-        <label>From:</label>
+        <label for="fromDate">From:</label>
         <input type="date" id="fromDate" />
-        <label>To:</label>
+        <label for="toDate">To:</label>
         <input type="date" id="toDate" />
         <button onclick="loadDashboard()">🔍 Load</button>
       </div>
@@ -82,11 +79,11 @@
     <section id="snapshot" class="tab">
       <h2>Daily Snapshot</h2>
       <div class="filter-box">
-        <label>From:</label>
+        <label for="snapFrom">From:</label>
         <input type="date" id="snapFrom" />
-        <label>To:</label>
+        <label for="snapTo">To:</label>
         <input type="date" id="snapTo" />
-        <label>Balance:</label>
+        <label for="balanceFilter">Balance:</label>
         <select id="balanceFilter">
           <option value="all">All</option>
           <option value="credit">In Credit</option>
@@ -107,7 +104,6 @@
         <tbody></tbody>
       </table>
     </section>
-
   </main>
 
   <!-- 🔻 Footer -->
@@ -118,4 +114,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-  
