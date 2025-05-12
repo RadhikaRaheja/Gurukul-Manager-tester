@@ -2,6 +2,13 @@ const backendURL = 'https://script.google.com/macros/s/AKfycbw7NUg_5Av_re7t_ois3
 
 let allTransactions = [];
 
+function switchTab(tabId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(tabId).classList.add('active');
+  document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId + 'Tab').classList.add('active');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const students = await fetchStudents();
   await fetchAllTransactions();
@@ -18,7 +25,6 @@ function applySavedMode() {
   document.body.classList.toggle('dark-mode', !isLight);
   document.getElementById('modeSwitch').checked = isLight;
 }
-
 function toggleMode() {
   const isLight = document.getElementById('modeSwitch').checked;
   document.body.classList.toggle('light-mode', isLight);
@@ -26,18 +32,10 @@ function toggleMode() {
   localStorage.setItem('mode', isLight ? 'light' : 'dark');
 }
 
-function switchTab(tabId) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById(tabId).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-  document.getElementById(tabId + 'Tab').classList.add('active');
-}
-
 async function fetchStudents() {
   const res = await fetch(`${backendURL}?action=getStudents`);
   return await res.json();
 }
-
 async function fetchAllTransactions() {
   const res = await fetch(`${backendURL}?action=getTransactions`);
   allTransactions = await res.json();
@@ -69,14 +67,14 @@ function renderEntryRows(students) {
       <span>${s.name} (${s.class})</span>
       <input type="number" placeholder="Debit" class="debit" />
       <input type="number" placeholder="Credit" class="credit" />
-      <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">₹${balance}</span>
+      <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">Rs. ${balance}</span>
     `;
     row.dataset.name = s.name;
     row.dataset.class = s.class;
     container.appendChild(row);
   });
 
-  document.getElementById('entryTotal').textContent = `Grand Total = ₹${grandTotal}`;
+  document.getElementById('entryTotal').textContent = `Grand Total = Rs. ${grandTotal}`;
 }
 
 function calculateBalance(name, cls) {
@@ -152,21 +150,27 @@ async function loadDashboard() {
 
   const tbody = document.querySelector('#transactionTable tbody');
   tbody.innerHTML = '';
-
   let rangeTotal = 0;
-filtered.forEach(tx => {
-  ...
-  rangeTotal += tx.credit - tx.debit;
-});
-const totalTxs = allTransactions.filter(t => t.name === name && t.class === cls);
-const totalBalance = totalTxs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
+  filtered.forEach(tx => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${formatDateDMY(tx.date)}</td>
+      <td style="color:#e53935;">Rs. ${tx.debit}</td>
+      <td style="color:#10b981;">Rs. ${tx.credit}</td>
+    `;
+    tbody.appendChild(tr);
+    rangeTotal += tx.credit - tx.debit;
+  });
 
-document.getElementById('tableBalanceTotal').innerHTML = `
-  💡 Balance for selected range: Rs. ${rangeTotal}<br>
-  📊 Total balance: Rs. ${totalBalance}
-  <br><br>
-  <button class="export-btn" onclick="exportDashboardPDF('${name}')">📤 Share as PDF</button>
-`;
+  const totalTxs = allTransactions.filter(t => t.name === name && t.class === cls);
+  const totalBalance = totalTxs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
+
+  document.getElementById('tableBalanceTotal').innerHTML = `
+    💡 Balance for selected range: Rs. ${rangeTotal}<br>
+    📊 Total balance: Rs. ${totalBalance}
+    <br><br>
+    <button class="export-btn" onclick="exportDashboardPDF('${name}')">📤 Share as PDF</button>
+  `;
 }
 
 async function exportDashboardPDF(name) {
@@ -210,8 +214,8 @@ async function loadSnapshot() {
       <td>${formatDateDMY(row.date)}</td>
       <td>${row.name}</td>
       <td>${row.class}</td>
-      <td style="color:#e53935;">₹${row.debit}</td>
-      <td style="color:#10b981;">₹${row.credit}</td>
+      <td style="color:#e53935;">Rs. ${row.debit}</td>
+      <td style="color:#10b981;">Rs. ${row.credit}</td>
     `;
     tbody.appendChild(tr);
   });
