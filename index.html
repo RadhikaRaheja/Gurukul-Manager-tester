@@ -5,68 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gurukul Manager</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- PWA Manifest + Meta -->
-<link rel="manifest" href="manifest.json" />
-<meta name="theme-color" content="#1f2937" />
-<link rel="icon" href="glogo.jpg" sizes="192x192" />
-
-  <!-- PDF export dependencies -->
+  <link rel="manifest" href="manifest.json" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
-<body>
+<body class="dark-mode">
+
   <header>
     <h1>Gurukul Manager</h1>
     <nav>
       <button onclick="switchTab('entry')" id="entryTab" class="active">➕ Entry</button>
       <button onclick="switchTab('dashboard')" id="dashboardTab">📊 Dashboard</button>
+      <button onclick="switchTab('snapshot')" id="snapshotTab">📆 Snapshot</button>
     </nav>
+    <div class="mode-toggle">
+      <label class="switch">
+        <input type="checkbox" id="modeSwitch" />
+        <span class="slider"></span>
+      </label>
+    </div>
   </header>
 
   <main>
-    <!-- Entry Section -->
+    <!-- 📥 Entry Section -->
     <section id="entry" class="tab active">
       <h2>Transaction Entry</h2>
-      <form id="entryForm">
+      <div class="date-container">
         <label for="date">Date:</label>
-        <input type="date" id="date" required />
-
-        <label for="student">Student:</label>
-        <select id="studentSelect" required></select>
-
-        <label for="debit">Debit (₹):</label>
-        <input type="number" id="debit" placeholder="0" />
-
-        <label for="credit">Credit (₹):</label>
-        <input type="number" id="credit" placeholder="0" />
-
-        <button type="submit">Save Transaction</button>
-      </form>
-      <div id="entryStatus" style="margin-top: 10px;"></div>
+        <input type="date" id="entryDate" />
+      </div>
+      <div id="entryList"></div>
+      <button id="saveAllButton">💾 Save All Entries</button>
+      <div id="entryStatus"></div>
     </section>
 
-    <!-- Dashboard Section -->
+    <!-- 📊 Dashboard Section -->
     <section id="dashboard" class="tab">
       <h2>Student Dashboard</h2>
-
-      <label for="dashboardStudent">Select Student:</label>
-      <select id="dashboardStudent" required></select>
-
-      <label for="filterDate">From Date:</label>
-      <input type="date" id="filterDate" />
-
-      <label for="toDate">To Date:</label>
-      <input type="date" id="toDate" />
-
-      <button onclick="loadDashboard()">🔍 Load</button>
-
-      <div id="summary"></div>
-
+      <div class="filter-box">
+        <label>Student:</label>
+        <select id="dashboardStudent"></select>
+        <label>From:</label>
+        <input type="date" id="fromDate" />
+        <label>To:</label>
+        <input type="date" id="toDate" />
+        <button onclick="loadDashboard()">🔍 Load</button>
+      </div>
+      <div id="dashboardSummary"></div>
       <table id="transactionTable">
         <thead>
           <tr>
             <th>Date</th>
+            <th>Debit (₹)</th>
+            <th>Credit (₹)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div id="tableBalanceTotal"></div>
+    </section>
+
+    <!-- 📅 Snapshot Section -->
+    <section id="snapshot" class="tab">
+      <h2>Daily Snapshot</h2>
+      <div class="filter-box">
+        <label>From:</label>
+        <input type="date" id="snapFrom" />
+        <label>To:</label>
+        <input type="date" id="snapTo" />
+        <button onclick="loadSnapshot()">📆 Load Snapshot</button>
+      </div>
+      <table id="snapshotTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Student</th>
+            <th>Class</th>
             <th>Debit (₹)</th>
             <th>Credit (₹)</th>
           </tr>
