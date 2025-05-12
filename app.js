@@ -2,11 +2,11 @@ const backendURL = 'https://script.google.com/macros/s/AKfycbw7NUg_5Av_re7t_ois3
 
 let allTransactions = [];
 let balanceMap = new Map();
-let studentMap = new Map();
+let studentMap = new Map(); // studentId -> {name, class}
 
 document.addEventListener('DOMContentLoaded', async () => {
   const students = await fetchStudents();
-  students.forEach(s => studentMap.set(s.id, s));
+  students.forEach(s => studentMap.set(s.id, { name: s.name, class: s.class }));
   await fetchAllTransactions();
   buildBalanceMap();
   renderEntryRows(students);
@@ -39,7 +39,7 @@ function switchTab(tabId) {
 
 async function fetchStudents() {
   const res = await fetch(`${backendURL}?action=getStudents`);
-  return await res.json();
+  return await res.json(); // each student: {id, name, class}
 }
 
 async function fetchAllTransactions() {
@@ -50,25 +50,14 @@ async function fetchAllTransactions() {
 function buildBalanceMap() {
   balanceMap.clear();
   allTransactions.forEach(tx => {
-    const key = tx.studentId;
-    const prev = balanceMap.get(key) || 0;
-    balanceMap.set(key, prev + (tx.credit - tx.debit));
+    const id = tx.studentId;
+    const prev = balanceMap.get(id) || 0;
+    balanceMap.set(id, prev + (tx.credit - tx.debit));
   });
 }
 
 function calculateBalance(studentId) {
   return balanceMap.get(studentId) || 0;
-}
-
-function populateDropdowns(students) {
-  const dashboardSel = document.getElementById('dashboardStudent');
-  dashboardSel.innerHTML = '';
-  students.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = `${s.name} (${s.class})`;
-    dashboardSel.appendChild(opt);
-  });
 }
 
 function renderEntryRows(students) {
@@ -90,11 +79,22 @@ function renderEntryRows(students) {
       <input type="number" placeholder="Credit" class="credit" />
       <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">Rs. ${balance}</span>
     `;
-    row.dataset.id = s.id;
+    row.dataset.studentId = s.id;
     container.appendChild(row);
   });
 
   document.getElementById('entryTotal').textContent = `Grand Total = Rs. ${grandTotal}`;
+}
+
+function populateDropdowns(students) {
+  const dashboardSel = document.getElementById('dashboardStudent');
+  dashboardSel.innerHTML = '';
+  students.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = `${s.name} (${s.class})`;
+    dashboardSel.appendChild(opt);
+  });
 }
 
 async function saveAllEntries() {
@@ -105,12 +105,12 @@ async function saveAllEntries() {
   const entries = [];
 
   rows.forEach(row => {
-    const studentId = row.dataset.id;
-    const s = studentMap.get(studentId);
+    const studentId = row.dataset.studentId;
+    const student = studentMap.get(studentId);
     const debit = parseFloat(row.querySelector('.debit').value) || 0;
     const credit = parseFloat(row.querySelector('.credit').value) || 0;
     if (debit || credit) {
-      entries.push({ date, studentId, name: s.name, class: s.class, debit, credit });
+      entries.push({ date, studentId, name: student.name, class: student.class, debit, credit });
     }
   });
 
