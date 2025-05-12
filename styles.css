@@ -251,6 +251,21 @@ tbody tr:nth-child(even) {
 .light-mode tbody tr:nth-child(even) {
   background-color: #f5fff7;
 }
+/* Light mode for entry tab rows */
+.light-mode .entry-row {
+  background-color: #f5fff7;
+  border: 1px solid #bdeac9;
+}
+
+/* Light mode for summary/info boxes */
+.light-mode .summary-box,
+.light-mode .entry-footer-summary,
+.light-mode .status-message {
+  background-color: #f0fff4;
+  color: #003d1f;
+  border: 1px solid #a8e2bd;
+}
+
 .light-mode td {
   color: #00264d;
 }
