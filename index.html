@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gurukul Manager</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:,">
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
@@ -30,7 +31,7 @@
   <!-- 📥 Main -->
   <main class="main-content">
 
-    <!-- 📥 Entry Section -->
+    <!-- Entry Tab -->
     <section id="entry" class="tab active">
       <h2>Transaction Entry</h2>
       <div class="date-container">
@@ -39,17 +40,17 @@
       </div>
       <div class="entry-header-row">
         <div>Student</div>
-        <div>Debit (₹)</div>
-        <div>Credit (₹)</div>
+        <div>Debit (Rs.)</div>
+        <div>Credit (Rs.)</div>
         <div>Balance</div>
       </div>
       <div id="entryList"></div>
       <div id="entryStatus" class="status-message"></div>
-      <button id="saveAllButton">💾 Save All Entries</button>
+      <button id="saveAllButton" class="button-primary">💾 Save All Entries</button>
       <div id="entryTotal" class="entry-footer-summary"></div>
     </section>
 
-    <!-- 📊 Dashboard Section -->
+    <!-- Dashboard Tab -->
     <section id="dashboard" class="tab">
       <h2>Student Dashboard</h2>
       <div class="filter-box">
@@ -59,15 +60,15 @@
         <input type="date" id="fromDate" />
         <label for="toDate">To:</label>
         <input type="date" id="toDate" />
-        <button onclick="loadDashboard()">🔍 Load</button>
+        <button class="button-primary" onclick="loadDashboard()">🔍 Load</button>
       </div>
       <div id="dashboardSummary" class="summary-box"></div>
       <table id="transactionTable">
         <thead>
           <tr>
             <th>Date</th>
-            <th>Debit (₹)</th>
-            <th>Credit (₹)</th>
+            <th>Debit (Rs.)</th>
+            <th>Credit (Rs.)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -75,7 +76,7 @@
       <div id="tableBalanceTotal" class="summary-box"></div>
     </section>
 
-    <!-- 📆 Snapshot Section -->
+    <!-- Snapshot Tab -->
     <section id="snapshot" class="tab">
       <h2>Daily Snapshot</h2>
       <div class="filter-box">
@@ -89,7 +90,7 @@
           <option value="credit">In Credit</option>
           <option value="debit">In Debit</option>
         </select>
-        <button onclick="loadSnapshot()">📆 Load</button>
+        <button class="button-primary" onclick="loadSnapshot()">📆 Load</button>
       </div>
       <table id="snapshotTable">
         <thead>
@@ -97,8 +98,8 @@
             <th>Date</th>
             <th>Student</th>
             <th>Class</th>
-            <th>Debit (₹)</th>
-            <th>Credit (₹)</th>
+            <th>Debit (Rs.)</th>
+            <th>Credit (Rs.)</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -106,9 +107,9 @@
     </section>
   </main>
 
-  <!-- 🔻 Footer -->
+  <!-- Footer -->
   <footer>
-    <p>Designed by Radhika © 2025</p>
+    <span>© 2025 Designed by Radhika</span>
   </footer>
 
   <script src="app.js"></script>
