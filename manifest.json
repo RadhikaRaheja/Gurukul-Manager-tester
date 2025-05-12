@@ -1,0 +1,22 @@
+{
+  "name": "Gurukul Manager",
+  "short_name": "Gurukul",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#1f2937",
+  "orientation": "portrait",
+  "description": "Student/Worker transaction manager and dashboard",
+  "icons": [
+    {
+      "src": "glogo.jpg",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "glogo.jpg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}
