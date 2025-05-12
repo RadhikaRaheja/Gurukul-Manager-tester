@@ -4,7 +4,7 @@ let allTransactions = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   const students = await fetchStudents();
-  await fetchAllTransactions(); // for balance calculation
+  await fetchAllTransactions();
   renderEntryRows(students);
   populateDropdowns(students);
   document.getElementById('saveAllButton').addEventListener('click', saveAllEntries);
@@ -29,7 +29,6 @@ function toggleMode() {
 function switchTab(tabId) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(tabId).classList.add('active');
-
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById(tabId + 'Tab').classList.add('active');
 }
@@ -70,9 +69,7 @@ function renderEntryRows(students) {
       <span>${s.name} (${s.class})</span>
       <input type="number" placeholder="Debit" class="debit" />
       <input type="number" placeholder="Credit" class="credit" />
-      <span style="min-width: 120px; font-weight: bold; color: ${balance < 0 ? '#ef4444' : '#10b981'};">
-        ₹${balance}
-      </span>
+      <span style="font-weight: bold; color: ${balance < 0 ? '#e53935' : '#10b981'};">₹${balance}</span>
     `;
     row.dataset.name = s.name;
     row.dataset.class = s.class;
@@ -142,7 +139,9 @@ function formatDateDMY(dateStr) {
 }
 
 async function loadDashboard() {
-  const [name, cls] = document.getElementById('dashboardStudent').value.split('|||');
+  const value = document.getElementById('dashboardStudent').value;
+  if (!value) return;
+  const [name, cls] = value.split('|||');
   const from = document.getElementById('fromDate').value;
   const to = document.getElementById('toDate').value;
 
@@ -159,7 +158,7 @@ async function loadDashboard() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${formatDateDMY(tx.date)}</td>
-      <td style="color:#ef4444;">₹${tx.debit}</td>
+      <td style="color:#e53935;">₹${tx.debit}</td>
       <td style="color:#10b981;">₹${tx.credit}</td>
     `;
     tbody.appendChild(tr);
@@ -191,21 +190,30 @@ async function exportDashboardPDF(name) {
 async function loadSnapshot() {
   const from = document.getElementById('snapFrom').value;
   const to = document.getElementById('snapTo').value || from;
+  const balanceFilter = document.getElementById('balanceFilter').value;
+
   if (!from) return alert('Please select a date');
 
   const res = await fetch(`${backendURL}?action=getSnapshot&from=${from}&to=${to}`);
   const data = await res.json();
 
+  const filtered = data.filter(row => {
+    const net = row.credit - row.debit;
+    if (balanceFilter === 'credit') return net > 0;
+    if (balanceFilter === 'debit') return net < 0;
+    return true;
+  });
+
   const tbody = document.querySelector('#snapshotTable tbody');
   tbody.innerHTML = '';
-  data.sort((a, b) => new Date(a.date) - new Date(b.date));
-  data.forEach(row => {
+  filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+  filtered.forEach(row => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${formatDateDMY(row.date)}</td>
       <td>${row.name}</td>
       <td>${row.class}</td>
-      <td style="color:#ef4444;">₹${row.debit}</td>
+      <td style="color:#e53935;">₹${row.debit}</td>
       <td style="color:#10b981;">₹${row.credit}</td>
     `;
     tbody.appendChild(tr);
