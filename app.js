@@ -81,7 +81,7 @@ function calculateBalance(name, cls) {
   const txs = allTransactions.filter(t => t.name === name && t.class === cls);
   return txs.reduce((sum, tx) => sum + (tx.credit - tx.debit), 0);
 }
-
+console.log("Entries to save:", entries.length, entries);
 async function saveAllEntries() {
   const date = document.getElementById('entryDate').value;
   if (!date) return alert('Please select a date.');
