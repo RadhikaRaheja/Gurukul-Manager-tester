@@ -105,15 +105,20 @@ async function saveAllEntries() {
   btn.disabled = true;
   btn.textContent = 'Saving...';
 
-  const savePromises = entries.map(entry =>
-    fetch(backendURL, {
+  try {
+    const res = await fetch(backendURL, {
       method: 'POST',
-      body: JSON.stringify({ action: 'saveTransaction', payload: entry })
-    })
-  );
-
-  await Promise.all(savePromises);
-  document.getElementById('entryStatus').textContent = '✅ Entries saved!';
+      body: JSON.stringify({
+        action: 'saveTransactionsBatch',
+        payload: entries
+      })
+    });
+    const result = await res.json();
+    document.getElementById('entryStatus').textContent = `✅ ${result.saved} entries saved!`;
+  } catch (err) {
+    alert('Error saving entries. Please try again.');
+    console.error(err);
+  }
 
   rows.forEach(r => {
     r.querySelector('.debit').value = '';
